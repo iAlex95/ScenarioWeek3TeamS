@@ -3,6 +3,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.List;
 
+import Components.Component;
+import Components.GridPoint;
+
 public class DragAndDropListener implements MouseListener, MouseMotionListener {
 
 	private List<Component> components;
@@ -38,7 +41,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 		// move drag component to the top of the list
 		if(dragComponent != null){
 			if(evt.getButton() == MouseEvent.BUTTON3) {
-		      if (dragComponent.getRotation() == 0) dragComponent.setRotation(1);
+		      if (dragComponent.getRotation() != dragComponent.getMaxRotation()-1) dragComponent.setRotation(dragComponent.getRotation()+1);
 		      else dragComponent.setRotation(0);
 		      dragComponent = null;
 		      simulator.repaint();
@@ -64,27 +67,34 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 
 	@Override
 	public void mouseReleased(MouseEvent evt) {
-		int x = evt.getPoint().x;
-		int y = evt.getPoint().y;
-		GridPoint checkPoint = simulator.checkPoint(x, y);
-		
-		if (checkPoint != null && !simulator.checkIfOccupied(checkPoint)) {
-			dragComponent.setX(checkPoint.getX());
-			dragComponent.setY(checkPoint.getY());
-			dragComponent.setInitial(false);
-			checkPoint.setOccupied(true);
-			dragComponent.setGridPoint(checkPoint);
-		} else {
-			simulator.removeComponent(dragComponent);
+		if (dragComponent != null) {
+			int x = evt.getPoint().x;
+			int y = evt.getPoint().y;
+			GridPoint checkPoint = simulator.checkPoint(x, y);
+			
+			if (checkPoint != null && !simulator.checkIfOccupied(checkPoint)) {
+				dragComponent.setX(checkPoint.getX());
+				dragComponent.setY(checkPoint.getY());
+				dragComponent.setInitial(false);
+				checkPoint.setOccupied(true);
+				dragComponent.setGridPoint(checkPoint);
+			} else {
+				if (checkPoint == null || dragComponent.getInitial()) {
+					simulator.removeComponent(dragComponent);
+				} else {
+					dragComponent.setX(dragComponent.getGridPoint().getX());
+					dragComponent.setY(dragComponent.getGridPoint().getY());
+				}
+			}
+			
+			if (needToRedraw) {
+				simulator.createAndAddComponent(dragComponent.getType());
+				needToRedraw = false;
+			}
+			
+			dragComponent = null;
+			simulator.repaint();
 		}
-		
-		if (needToRedraw) {
-			simulator.createAndAddComponent(dragComponent.getType());
-			needToRedraw = false;
-		}
-		
-		dragComponent = null;
-		simulator.repaint();
 	}
 
 	@Override
