@@ -65,7 +65,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 				
 		      dragComponent = null;
 		    } else {
-				components.remove(this.dragComponent );
+				components.remove(this.dragComponent);
 				components.add(this.dragComponent);
 				if (dragComponent.getGridPoint() != null) {
 					dragComponent.getGridPoint().setOccupied(false);

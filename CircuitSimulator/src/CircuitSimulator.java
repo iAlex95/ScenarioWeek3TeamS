@@ -3,14 +3,17 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
@@ -47,7 +50,7 @@ public class CircuitSimulator extends JPanel {
 	private static final int SWITCH = 7;
 	private static final int TRIPLEWIRE = 8;
 
-	private Image imgBackground;
+	//private Image imgBackground;
 	private Image leftPanel;
 	private Image rightPanel;
 
@@ -62,8 +65,8 @@ public class CircuitSimulator extends JPanel {
 	private GridPoint highlightPoint;
 
 	public CircuitSimulator() {
-		URL urlBackgroundImg = getClass().getResource("/img/bg.png");
-		imgBackground = new ImageIcon(urlBackgroundImg).getImage();
+		//URL urlBackgroundImg = getClass().getResource("/img/bg.png");
+		//imgBackground = new ImageIcon(urlBackgroundImg).getImage();
 		URL urlLeftPanel = getClass().getResource("/img/leftpanel.png");
 		leftPanel = new ImageIcon(urlLeftPanel).getImage();
 		URL urlRightPanel = getClass().getResource("/img/rightpanel.png");
@@ -75,15 +78,7 @@ public class CircuitSimulator extends JPanel {
 			}
 		}
 		
-		createAndAddComponent(WIRE);
-		createAndAddComponent(CORNERWIRE);
-		createAndAddComponent(CELL);
-		createAndAddComponent(VOLTMETER);
-		createAndAddComponent(AMMETER);
-		createAndAddComponent(RESISTOR);
-		createAndAddComponent(LED);
-		createAndAddComponent(SWITCH);
-		createAndAddComponent(TRIPLEWIRE);
+		createInitialComponentList();
 
 		DragAndDropListener listener = new DragAndDropListener(this.components, this);
 		this.addMouseListener(listener);
@@ -100,6 +95,18 @@ public class CircuitSimulator extends JPanel {
 		this.setLayout(null);
 	}
 
+	public void createInitialComponentList() {
+		createAndAddComponent(WIRE);
+		createAndAddComponent(CORNERWIRE);
+		createAndAddComponent(CELL);
+		createAndAddComponent(VOLTMETER);
+		createAndAddComponent(AMMETER);
+		createAndAddComponent(RESISTOR);
+		createAndAddComponent(LED);
+		createAndAddComponent(SWITCH);
+		createAndAddComponent(TRIPLEWIRE);
+	}
+	
 	public GridPoint checkPoint(int x, int y) {
 		for (GridPoint gp : gridPoints) {
 			if (x >= gp.getX() && x < gp.getX()+TILE_OFFSET_Y &&
@@ -235,9 +242,45 @@ public class CircuitSimulator extends JPanel {
         }
 		
 		addProperties();
+		addButtons();
 		validate();
 		
 		setSelectedComponent(-1, null);
+	}
+	
+	public void addButtons() {
+		JButton clearButton = new JButton("Clear Canvas");
+		clearButton.setBounds(810-(clearButton.getWidth()/2),530-(clearButton.getHeight()/2),175,20);
+		add(clearButton);
+		
+		clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+	            components.clear();
+	            createInitialComponentList();
+	            
+	            for (GridPoint gp : gridPoints) {
+	            	gp.setOccupied(false);
+	            }
+	            
+	            repaint();
+	        }          
+	     });
+		
+		JButton runButton = new JButton("Run");
+		runButton.setBounds(810-(runButton.getWidth()/2),560-(runButton.getHeight()/2),80,20);
+		add(runButton);
+		
+		JButton helpButton = new JButton("Help");
+		helpButton.setBounds(905-(helpButton.getWidth()/2),560-(helpButton.getHeight()/2),80,20);
+		add(helpButton);
+		
+		helpButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane helpInfo = new JOptionPane();
+				helpInfo.showMessageDialog(new JFrame(), "Eggs are not supposed to be green.", "Help", JOptionPane.INFORMATION_MESSAGE);
+	        }          
+	     });
+
 	}
 	
 	public void addProperties() {
