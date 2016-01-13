@@ -1,16 +1,19 @@
-import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JSlider;
+import javax.swing.JTextArea;
 
 import Components.Ammeter;
 import Components.Cell;
@@ -52,7 +55,11 @@ public class CircuitSimulator extends JPanel {
 	private List<GridPoint> gridPoints = new ArrayList<GridPoint>();
 	
 	private JFrame f;
-	private JPanel panel;
+	
+	private int selectedComponentType = -1;
+	private Component selectedComponent = null;
+	
+	private GridPoint highlightPoint;
 
 	public CircuitSimulator() {
 		URL urlBackgroundImg = getClass().getResource("/img/bg.png");
@@ -87,10 +94,10 @@ public class CircuitSimulator extends JPanel {
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.add(this);
 		f.setResizable(false);
-		//f.setSize(this.imgBackground.getWidth(null), this.imgBackground.getHeight(null));
-		f.setSize(800, 630);
-		//f.pack();
+		f.setSize(1000, 630);
 		f.setTitle("CIRCUIT SIMULATOR - GROUP S");
+		
+		this.setLayout(null);
 	}
 
 	public GridPoint checkPoint(int x, int y) {
@@ -210,7 +217,7 @@ public class CircuitSimulator extends JPanel {
 			
 	@Override
 	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
+		super.paintComponent(g); 
 		g.drawImage(leftPanel, 0, 0, null);
 		g.drawImage(rightPanel, 800, 0, null);
 		for (GridPoint point : gridPoints) {
@@ -219,10 +226,86 @@ public class CircuitSimulator extends JPanel {
 		for (Component component : components) {
 				g.drawImage(component.getImage(component.getRotation()), component.getX(), component.getY(), null);
 		}
+		
+		if (highlightPoint != null) {
+			Graphics2D g2d = (Graphics2D) g.create();
+            Rectangle bounds = new Rectangle(highlightPoint.getX(), highlightPoint.getY(), 50, 50);
+            g2d.setColor(Color.RED);
+            g2d.draw(bounds);
+        }
+		
+		addProperties();
+		validate();
+		
+		setSelectedComponent(-1, null);
 	}
+	
+	public void addProperties() {
+		if (selectedComponentType == CELL) {
+			Cell cell = (Cell) selectedComponent;
+			
+			JTextArea textArea = new JTextArea(0, 20);
+			textArea.setEditable(false);
+			textArea.setOpaque(false);
+			textArea.setFont(new Font("Arial", Font.BOLD, 12));
+			textArea.setText("VOLTAGE");
+			textArea.setBounds(824-(textArea.getWidth()/2),85-(textArea.getHeight()/2),175,20);
+			add(textArea);
+			
+			JTextArea displayValue = new JTextArea(0, 20);
+			displayValue.setEditable(false);
+			displayValue.setOpaque(false);
+			displayValue.setFont(new Font("Arial", Font.BOLD, 12));
+			displayValue.setText(Integer.toString(cell.getVoltage())+"V");
+			displayValue.setBounds(960-(displayValue.getWidth()/2),106-(displayValue.getHeight()/2),30,20);
+			add(displayValue);
+			
+			JSlider voltage = new JSlider(JSlider.HORIZONTAL, 0, 100, cell.getVoltage());
+			voltage.setBounds(812-(voltage.getWidth()/2),100-(voltage.getHeight()/2),150,30);
+			voltage.setOpaque(false);
+			add(voltage);
+			voltage.addChangeListener(new SliderListener(cell, displayValue));
+		}
+		if (selectedComponentType == RESISTOR) {
+			Resistor resistor = (Resistor) selectedComponent;
+			
+			JTextArea textArea = new JTextArea(0, 20);
+			textArea.setEditable(false);
+			textArea.setOpaque(false);
+			textArea.setFont(new Font("Arial", Font.BOLD, 12));
+			textArea.setText("RESISTANCE");
+			textArea.setBounds(824-(textArea.getWidth()/2),85-(textArea.getHeight()/2),175,20);
+			add(textArea);
+			
+			JTextArea displayValue = new JTextArea(0, 20);
+			displayValue.setEditable(false);
+			displayValue.setOpaque(false);
+			displayValue.setFont(new Font("Arial", Font.BOLD, 12));
+			displayValue.setText(Integer.toString(resistor.getResistance())+"Ω");
+			displayValue.setBounds(960-(displayValue.getWidth()/2),106-(displayValue.getHeight()/2),30,20);
+			add(displayValue);
+			
+			JSlider voltage = new JSlider(JSlider.HORIZONTAL, 0, 100, resistor.getResistance());
+			voltage.setBounds(812-(voltage.getWidth()/2),100-(voltage.getHeight()/2),150,30);
+			voltage.setOpaque(false);
+			add(voltage);
+			voltage.addChangeListener(new SliderListener(resistor, displayValue));
+		}
+		if (selectedComponentType == SWITCH) {}
+	}
+			
 	
 	public void removeComponent(Component component) {
 		this.components.remove(component);
+	}
+	
+	public void setSelectedComponent(int selected, Component c) {
+		selectedComponentType = selected;
+		selectedComponent = c;
+	}
+	
+	public void setHighlightPoint(GridPoint p) {
+		highlightPoint = p;
 	}
 
 	public static void main(String[] args) {

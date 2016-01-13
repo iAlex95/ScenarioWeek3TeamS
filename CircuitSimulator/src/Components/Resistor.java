@@ -5,21 +5,22 @@ import java.util.ArrayList;
 
 public class Resistor extends Component {
 	
-	private float resistance;
+	private int resistance;
 	private final static int MAX_ROTATION = 2;
 	
 	public Resistor(int x, int y, int type) {
 		super.x = x;
 		super.y = y;
 		super.type = type;
+		resistance = 4;
 		maxRotation = MAX_ROTATION;
 	}
 
-	public float getResistance() {
+	public int getResistance() {
 		return resistance;
 	}
 
-	public void setResistance(float resistance) {
+	public void setResistance(int resistance) {
 		this.resistance = resistance;
 	}
 }
