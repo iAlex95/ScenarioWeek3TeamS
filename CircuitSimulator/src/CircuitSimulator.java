@@ -1,4 +1,5 @@
 import java.awt.Color;
+
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -10,13 +11,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
 import Components.Ammeter;
 import Components.Cell;
@@ -29,6 +24,8 @@ import Components.Switch;
 import Components.TripleWire;
 import Components.Voltmeter;
 import Components.Wire;
+
+import java.sql.*;
 
 public class CircuitSimulator extends JPanel {
 	private static final int GRID_START_X = 200;
@@ -64,7 +61,12 @@ public class CircuitSimulator extends JPanel {
 	
 	private GridPoint highlightPoint;
 
+	Connection c = null;
+	
 	public CircuitSimulator() {
+		
+		c = sqliteConnection.dbConnector();
+		
 		//URL urlBackgroundImg = getClass().getResource("/img/bg.png");
 		//imgBackground = new ImageIcon(urlBackgroundImg).getImage();
 		URL urlLeftPanel = getClass().getResource("/img/leftpanel.png");
@@ -91,6 +93,164 @@ public class CircuitSimulator extends JPanel {
 		f.setResizable(false);
 		f.setSize(1000, 630);
 		f.setTitle("CIRCUIT SIMULATOR - GROUP S");
+		
+		
+		JMenuBar menuBar = new JMenuBar();
+		f.setJMenuBar(menuBar);
+		
+		JMenu file = new JMenu("File");
+		menuBar.add(file);
+		JMenuItem open = new JMenuItem("Open");
+		file.add(open);
+		JMenuItem saveAs = new JMenuItem("Save as...");
+		file.add(saveAs);
+		JMenuItem save = new JMenuItem("Save");
+		file.add(save);
+		
+		f.setVisible(true);
+		
+		saveAs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				try {
+					
+					String name = JOptionPane.showInputDialog("Name of circuit:");
+					
+					if (name == null) {
+						JOptionPane.showMessageDialog(null, "Please Enter a Name");
+					}
+					else {
+						
+						for (Component component : components) {
+							
+							String query = "INSERT INTO ComponentInfo (name, type, rotation, x, y) values (?,?,?,?,?)";
+							PreparedStatement pst = c.prepareStatement(query);
+							pst.setString(1, name);
+							pst.setInt(2, component.getType());
+							pst.setInt(3, component.getRotation());
+							pst.setInt(4, component.getX());
+							pst.setInt(5, component.getY());
+							
+							pst.execute();
+							pst.close();
+						}	
+						f.setTitle(name);
+						JOptionPane.showMessageDialog(null, "Circuit saved.");
+					}
+
+				}catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
+		});
+		
+		save.addActionListener(new ActionListener(){
+			
+			public void actionPerformed(ActionEvent arg0) {
+				
+				try {
+					
+					String query = "DELETE FROM ComponentInfo WHERE name='"+f.getTitle()+"'";
+					PreparedStatement pst1 = c.prepareStatement(query);
+					
+					pst1.execute();
+					pst1.close();
+					
+						
+					for (Component component : components) {
+							
+						String query1 = "INSERT INTO ComponentInfo (name, type, rotation, x, y) values (?,?,?,?,?)";
+						PreparedStatement pst = c.prepareStatement(query1);
+						pst.setString(1, f.getTitle());
+						pst.setInt(2, component.getType());
+						pst.setInt(3, component.getRotation());
+						pst.setInt(4, component.getX());
+						pst.setInt(5, component.getY());
+							
+						pst.execute();
+						pst.close();
+					}	
+					JOptionPane.showMessageDialog(null, "Circuit saved.");
+					
+				}catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				
+			}
+			
+		});
+		
+		open.addActionListener(new ActionListener(){
+			
+			public void actionPerformed(ActionEvent arg0) {
+				
+				try {
+					
+					String query = "SELECT name FROM ComponentInfo GROUP BY name";
+					PreparedStatement pst1 = c.prepareStatement(query);
+					ResultSet rs1 = pst1.executeQuery();
+					
+					ArrayList <String> results = new ArrayList<String>();
+					
+					while(rs1.next()) {
+						results.add(rs1.getString(1));
+					}
+					
+					String[] r = (String[]) results.toArray(new String[results.size()]);
+					
+					Object value = JOptionPane.showInputDialog(null, "Select a circuit", "Load a saved circuit", JOptionPane.OK_CANCEL_OPTION, null, r, r[0]);
+					System.out.println(results);
+					
+					String query2 = "SELECT name, type, rotation, x, y FROM ComponentInfo WHERE name=?";
+					PreparedStatement pst2 = c.prepareStatement(query2);
+					pst2.setString(1, (String) value);
+					ResultSet rs2 = pst2.executeQuery();
+					
+//					ResultSetMetaData rsmd = rs2.getMetaData();
+//				    System.out.println("querying SELECT * FROM XXX");
+//				    int columnsNumber = rsmd.getColumnCount();
+//				    while (rs2.next()) {
+//				        for (int i = 1; i <= columnsNumber; i++) {
+//				            if (i > 1) System.out.print(",  ");
+//				            String columnValue = rs2.getString(i);
+//				            System.out.print(columnValue + " " + rsmd.getColumnName(i));
+//				        }
+//				        System.out.println("");
+//				    }
+					
+					components.clear();
+					
+					while(rs2.next()) {
+											
+						int type = rs2.getInt("type");
+						//int rotation = rs2.getInt("rotation");
+						int x = rs2.getInt("x");
+						int y = rs2.getInt("y");
+						
+						//ADD COMPONENT TO LIST
+//						Component newC = new Component(x, y, type);
+//						components.add(newC);
+						
+						//DRAW COMPONENT
+						
+					}
+					
+					f.setTitle((String) value);
+					System.out.println(components);
+					
+					pst1.close();
+					rs1.close();
+					pst2.close();
+					rs2.close();
+					
+				}catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				
+			}
+			
+		});
 		
 		this.setLayout(null);
 	}
