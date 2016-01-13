@@ -11,6 +11,7 @@ import Components.Switch;
 
 public class DragAndDropListener implements MouseListener, MouseMotionListener {
 
+	private List<Component> initialComponents;
 	private List<Component> components;
 	private CircuitSimulator simulator;
 	
@@ -29,7 +30,8 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 	private static final int SWITCH = 7;
 	private static final int TRIPLEWIRE = 8;
 	
-	public DragAndDropListener(List<Component> components, CircuitSimulator simulator) {
+	public DragAndDropListener(List<Component> initialComponents, List<Component> components, CircuitSimulator simulator) {
+		this.initialComponents = initialComponents;
 		this.components = components;
 		this.simulator = simulator;
 	}
@@ -42,6 +44,18 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 		int x = evt.getPoint().x;
 		int y = evt.getPoint().y;
 		
+		for (int i = initialComponents.size()-1; i >= 0; i--) {
+			Component component = initialComponents.get(i);
+			
+			if(mouseOverComponent(component,x,y)){
+				dragOffsetX = x - component.getX();
+				dragOffsetY = y - component.getY();
+				dragComponent = component;
+				simulator.addComponent(component);
+				simulator.removeInitialComponent(component);
+				break;
+			}
+		}
 		for (int i = components.size()-1; i >= 0; i--) {
 			Component component = components.get(i);
 			

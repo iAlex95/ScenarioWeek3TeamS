@@ -1,5 +1,5 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
-
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -8,10 +8,22 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextArea;
 
 import Components.Ammeter;
 import Components.Cell;
@@ -24,8 +36,6 @@ import Components.Switch;
 import Components.TripleWire;
 import Components.Voltmeter;
 import Components.Wire;
-
-import java.sql.*;
 
 public class CircuitSimulator extends JPanel {
 	private static final int GRID_START_X = 200;
@@ -51,6 +61,7 @@ public class CircuitSimulator extends JPanel {
 	private Image leftPanel;
 	private Image rightPanel;
 
+	private List<Component> initialComponents = new ArrayList<Component>();
 	private List<Component> components = new ArrayList<Component>();
 	private List<GridPoint> gridPoints = new ArrayList<GridPoint>();
 	
@@ -58,15 +69,12 @@ public class CircuitSimulator extends JPanel {
 	
 	private int selectedComponentType = -1;
 	private Component selectedComponent = null;
+	private GridPoint highlightPoint = null;
 	
-	private GridPoint highlightPoint;
+	private Connection c = null;
 
-	Connection c = null;
-	
 	public CircuitSimulator() {
-		
 		c = sqliteConnection.dbConnector();
-		
 		//URL urlBackgroundImg = getClass().getResource("/img/bg.png");
 		//imgBackground = new ImageIcon(urlBackgroundImg).getImage();
 		URL urlLeftPanel = getClass().getResource("/img/leftpanel.png");
@@ -82,18 +90,26 @@ public class CircuitSimulator extends JPanel {
 		
 		createInitialComponentList();
 
-		DragAndDropListener listener = new DragAndDropListener(this.components, this);
+		DragAndDropListener listener = new DragAndDropListener(initialComponents, components, this);
 		this.addMouseListener(listener);
 		this.addMouseMotionListener(listener);
 
 		f = new JFrame();
-		f.setVisible(true);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.add(this);
 		f.setResizable(false);
-		f.setSize(1000, 630);
-		f.setTitle("CIRCUIT SIMULATOR - GROUP S");
+		f.setSize(1000, 650);
 		
+		addMenuBar();
+		
+		f.setVisible(true);
+		
+		this.setLayout(null);
+		
+		removeAll();
+	}
+	
+	public void addMenuBar() {
 		
 		JMenuBar menuBar = new JMenuBar();
 		f.setJMenuBar(menuBar);
@@ -106,8 +122,6 @@ public class CircuitSimulator extends JPanel {
 		file.add(saveAs);
 		JMenuItem save = new JMenuItem("Save");
 		file.add(save);
-		
-		f.setVisible(true);
 		
 		saveAs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -229,10 +243,11 @@ public class CircuitSimulator extends JPanel {
 						int y = rs2.getInt("y");
 						
 						//ADD COMPONENT TO LIST
-//						Component newC = new Component(x, y, type);
-//						components.add(newC);
+						createComponent(x,y,type);
 						
 						//DRAW COMPONENT
+						removeAll();
+						repaint();
 						
 					}
 					
@@ -251,8 +266,6 @@ public class CircuitSimulator extends JPanel {
 			}
 			
 		});
-		
-		this.setLayout(null);
 	}
 
 	public void createInitialComponentList() {
@@ -280,6 +293,91 @@ public class CircuitSimulator extends JPanel {
 	public boolean checkIfOccupied(GridPoint gp) {
 		if (gp.isOccupied()) return true;
 		else return false;
+	}
+	
+	public void createComponent(int x, int y, int type) {
+		Image img = null;
+		Component component = null;
+		if (type == 0) {
+			component = new Wire(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "wire.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "wire-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 1) {
+			component = new CornerWire(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "wirecorner1.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "wirecorner2.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "wirecorner3.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "wirecorner4.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 2) {
+			component = new Cell(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "cell.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "cell-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 3) {
+			component = new Voltmeter(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "voltmeter.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "voltmeter-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 4) {
+			component = new Ammeter(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "ammeter.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "ammeter-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 5) {
+			component = new Resistor(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "resistor.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "resistor-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 6) {
+			component = new LED(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "led.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "led-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 7) {
+			component = new Switch(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "switchclosed.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "switchclosed-v.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "switchopen.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "switchopen-v.png")).getImage();
+			component.addImage(img);
+		}
+		if (type == 8) {
+			component = new TripleWire(0, 0, type);
+			img = new ImageIcon(getClass().getResource("/img/" + "triplewire1.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "triplewire2.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "triplewire3.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "triplewire4.png")).getImage();
+			component.addImage(img);
+		}
+		component.setY(y);
+		component.setX(x);
+		GridPoint gp = checkPoint(x, y);
+		component.setGridPoint(gp);
+		this.components.add(component);
 	}
 	
 	public void createAndAddComponent(int type) {
@@ -379,7 +477,7 @@ public class CircuitSimulator extends JPanel {
 			component.setX(132);
 		}
 		component.setInitial(true);
-		this.components.add(component);
+		this.initialComponents.add(component);
 	}
 			
 	@Override
@@ -393,17 +491,21 @@ public class CircuitSimulator extends JPanel {
 		for (Component component : components) {
 				g.drawImage(component.getImage(component.getRotation()), component.getX(), component.getY(), null);
 		}
+		for (Component component : initialComponents) {
+			g.drawImage(component.getImage(component.getRotation()), component.getX(), component.getY(), null);
+		}
 		
 		if (highlightPoint != null) {
 			Graphics2D g2d = (Graphics2D) g.create();
             Rectangle bounds = new Rectangle(highlightPoint.getX(), highlightPoint.getY(), 50, 50);
+            g2d.setStroke(new BasicStroke(2));
             g2d.setColor(Color.RED);
             g2d.draw(bounds);
         }
 		
 		addProperties();
 		addButtons();
-		validate();
+		//validate();
 		
 		setSelectedComponent(-1, null);
 	}
@@ -416,12 +518,18 @@ public class CircuitSimulator extends JPanel {
 		clearButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 	            components.clear();
+	            
+	            selectedComponentType = -1;
+	        	selectedComponent = null;
+	        	highlightPoint = null;
+	            
 	            createInitialComponentList();
 	            
 	            for (GridPoint gp : gridPoints) {
 	            	gp.setOccupied(false);
 	            }
 	            
+	            removeAll();
 	            repaint();
 	        }          
 	     });
@@ -497,9 +605,16 @@ public class CircuitSimulator extends JPanel {
 		if (selectedComponentType == SWITCH) {}
 	}
 			
+	public void addComponent(Component component) {
+		this.components.add(component);
+	}
 	
 	public void removeComponent(Component component) {
 		this.components.remove(component);
+	}
+	
+	public void removeInitialComponent(Component component) {
+		this.initialComponents.remove(component);
 	}
 	
 	public void setSelectedComponent(int selected, Component c) {
