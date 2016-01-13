@@ -11,6 +11,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -137,13 +138,21 @@ public class CircuitSimulator extends JPanel {
 						
 						for (Component component : components) {
 							
-							String query = "INSERT INTO ComponentInfo (name, type, rotation, x, y) values (?,?,?,?,?)";
+							String query = "INSERT INTO ComponentInfo (name, type, rotation, x, y, voltage, resistance) values (?,?,?,?,?,?,?)";
 							PreparedStatement pst = c.prepareStatement(query);
 							pst.setString(1, name);
 							pst.setInt(2, component.getType());
 							pst.setInt(3, component.getRotation());
 							pst.setInt(4, component.getX());
 							pst.setInt(5, component.getY());
+							
+							if (component instanceof Cell) {
+								pst.setInt(6, ((Cell)component).getVoltage());
+							}
+
+							if (component instanceof Resistor) {
+								pst.setInt(7, ((Resistor)component).getResistance());
+							}
 							
 							pst.execute();
 							pst.close();
@@ -174,13 +183,21 @@ public class CircuitSimulator extends JPanel {
 						
 					for (Component component : components) {
 							
-						String query1 = "INSERT INTO ComponentInfo (name, type, rotation, x, y) values (?,?,?,?,?)";
+						String query1 = "INSERT INTO ComponentInfo (name, type, rotation, x, y, voltage, resistance) values (?,?,?,?,?,?,?)";
 						PreparedStatement pst = c.prepareStatement(query1);
 						pst.setString(1, f.getTitle());
 						pst.setInt(2, component.getType());
 						pst.setInt(3, component.getRotation());
 						pst.setInt(4, component.getX());
 						pst.setInt(5, component.getY());
+						
+						if (component instanceof Cell) {
+							pst.setInt(6, ((Cell)component).getVoltage());
+						}
+
+						if (component instanceof Resistor) {
+							pst.setInt(7, ((Resistor)component).getResistance());
+						}
 							
 						pst.execute();
 						pst.close();
@@ -216,34 +233,25 @@ public class CircuitSimulator extends JPanel {
 					Object value = JOptionPane.showInputDialog(null, "Select a circuit", "Load a saved circuit", JOptionPane.OK_CANCEL_OPTION, null, r, r[0]);
 					System.out.println(results);
 					
-					String query2 = "SELECT name, type, rotation, x, y FROM ComponentInfo WHERE name=?";
+					String query2 = "SELECT name, type, rotation, x, y, voltage, resistance FROM ComponentInfo WHERE name=?";
 					PreparedStatement pst2 = c.prepareStatement(query2);
 					pst2.setString(1, (String) value);
 					ResultSet rs2 = pst2.executeQuery();
-					
-//					ResultSetMetaData rsmd = rs2.getMetaData();
-//				    System.out.println("querying SELECT * FROM XXX");
-//				    int columnsNumber = rsmd.getColumnCount();
-//				    while (rs2.next()) {
-//				        for (int i = 1; i <= columnsNumber; i++) {
-//				            if (i > 1) System.out.print(",  ");
-//				            String columnValue = rs2.getString(i);
-//				            System.out.print(columnValue + " " + rsmd.getColumnName(i));
-//				        }
-//				        System.out.println("");
-//				    }
 					
 					components.clear();
 					
 					while(rs2.next()) {
 											
 						int type = rs2.getInt("type");
-						//int rotation = rs2.getInt("rotation");
+						int rotation = rs2.getInt("rotation");
 						int x = rs2.getInt("x");
 						int y = rs2.getInt("y");
 						
+						int voltage = rs2.getInt("voltage");
+						int resistance = rs2.getInt("resistance");
+						
 						//ADD COMPONENT TO LIST
-						createComponent(x,y,type);
+						createComponent(x,y,type,voltage,resistance);
 						
 						//DRAW COMPONENT
 						removeAll();
@@ -295,7 +303,7 @@ public class CircuitSimulator extends JPanel {
 		else return false;
 	}
 	
-	public void createComponent(int x, int y, int type) {
+	public void createComponent(int x, int y, int type, int voltage, int resistance) {
 		Image img = null;
 		Component component = null;
 		if (type == 0) {
@@ -318,6 +326,7 @@ public class CircuitSimulator extends JPanel {
 		}
 		if (type == 2) {
 			component = new Cell(0, 0, type);
+			((Cell)component).setVoltage(voltage);
 			img = new ImageIcon(getClass().getResource("/img/" + "cell.png")).getImage();
 			component.addImage(img);
 			img = new ImageIcon(getClass().getResource("/img/" + "cell-v.png")).getImage();
@@ -339,6 +348,7 @@ public class CircuitSimulator extends JPanel {
 		}
 		if (type == 5) {
 			component = new Resistor(0, 0, type);
+			((Resistor) component).setResistance(resistance);
 			img = new ImageIcon(getClass().getResource("/img/" + "resistor.png")).getImage();
 			component.addImage(img);
 			img = new ImageIcon(getClass().getResource("/img/" + "resistor-v.png")).getImage();
