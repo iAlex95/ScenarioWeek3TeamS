@@ -48,12 +48,14 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 			Component component = initialComponents.get(i);
 			
 			if(mouseOverComponent(component,x,y)){
-				dragOffsetX = x - component.getX();
-				dragOffsetY = y - component.getY();
-				dragComponent = component;
-				simulator.addComponent(component);
-				simulator.removeInitialComponent(component);
-				break;
+				if  ((component instanceof Cell && !simulator.getCellPlaced()) || !(component instanceof Cell)) {
+					dragOffsetX = x - component.getX();
+					dragOffsetY = y - component.getY();
+					dragComponent = component;
+					simulator.addComponent(component);
+					simulator.removeInitialComponent(component);
+					break;
+				}
 			}
 		}
 		for (int i = components.size()-1; i >= 0; i--) {
@@ -116,9 +118,16 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 					dragComponent.setGridPoint(checkPoint);
 					checkAndSetSelectedComponent(dragComponent);
 					simulator.setHighlightPoint(checkPoint);
+					
+					if (dragComponent instanceof Cell) {
+				    	simulator.setCellPlaced(true);
+				    }
 				} else {
 					if (checkPoint == null || dragComponent.getInitial()) {
 						simulator.removeComponent(dragComponent);
+						  if (dragComponent instanceof Cell) {
+					    	  simulator.setCellPlaced(false);
+					      }
 					} else {
 						dragComponent.setX(dragComponent.getGridPoint().getX());
 						dragComponent.setY(dragComponent.getGridPoint().getY());

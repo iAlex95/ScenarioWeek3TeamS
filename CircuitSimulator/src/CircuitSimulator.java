@@ -73,6 +73,7 @@ public class CircuitSimulator extends JPanel {
 	private GridPoint highlightPoint = null;
 	
 	private Connection c = null;
+	private boolean cellPlaced = false;
 
 	public CircuitSimulator() {
 		c = sqliteConnection.dbConnector();
@@ -251,7 +252,7 @@ public class CircuitSimulator extends JPanel {
 						int resistance = rs2.getInt("resistance");
 						
 						//ADD COMPONENT TO LIST
-						createComponent(x,y,type,voltage,resistance);
+						createComponent(x,y,type,voltage,resistance,rotation);
 						
 						//DRAW COMPONENT
 						removeAll();
@@ -303,7 +304,7 @@ public class CircuitSimulator extends JPanel {
 		else return false;
 	}
 	
-	public void createComponent(int x, int y, int type, int voltage, int resistance) {
+	public void createComponent(int x, int y, int type, int voltage, int resistance, int rotation) {
 		Image img = null;
 		Component component = null;
 		if (type == 0) {
@@ -331,6 +332,7 @@ public class CircuitSimulator extends JPanel {
 			component.addImage(img);
 			img = new ImageIcon(getClass().getResource("/img/" + "cell-v.png")).getImage();
 			component.addImage(img);
+			setCellPlaced(true);
 		}
 		if (type == 3) {
 			component = new Voltmeter(0, 0, type);
@@ -383,8 +385,9 @@ public class CircuitSimulator extends JPanel {
 			img = new ImageIcon(getClass().getResource("/img/" + "triplewire4.png")).getImage();
 			component.addImage(img);
 		}
-		component.setY(y);
 		component.setX(x);
+		component.setY(y);
+		component.setRotation(rotation);
 		GridPoint gp = checkPoint(x, y);
 		component.setGridPoint(gp);
 		this.components.add(component);
@@ -634,6 +637,14 @@ public class CircuitSimulator extends JPanel {
 	
 	public void setHighlightPoint(GridPoint p) {
 		highlightPoint = p;
+	}
+	
+	public void setCellPlaced(boolean b) {
+		cellPlaced = b;
+	}
+	
+	public boolean getCellPlaced() {
+		return cellPlaced;
 	}
 
 	public static void main(String[] args) {

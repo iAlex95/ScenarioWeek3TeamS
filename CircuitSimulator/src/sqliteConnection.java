@@ -13,7 +13,7 @@ public class sqliteConnection {
 			
 			Class.forName("org.sqlite.JDBC");
 			//change FILEPATH
-			Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/burns/Desktop/ScenarioWeek3TeamS/CircuitSimulator/ComponentData.sqlite");
+			Connection connection = DriverManager.getConnection("jdbc:sqlite:C:\\Users\\Alex\\workspace\\CircuitSimulator\\ComponentData.sqlite");
 			JOptionPane.showMessageDialog(null, "Database Connected");
 			return connection;
 			
