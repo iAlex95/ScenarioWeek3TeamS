@@ -45,7 +45,7 @@ public class CircuitChecker {
 			if (c instanceof Cell) {
 				start = c;
 				if (recursiveCheck(start.getGridPoint()) == 1) {
-					if (counter == components.size() && tripleWireCount == voltMeterCount*2) return 2;
+					if (counter == components.size() && tripleWireCount == voltMeterCount*2 && counter > 2) return 2;
 					else return 1;
 				} else {
 					return 1;
