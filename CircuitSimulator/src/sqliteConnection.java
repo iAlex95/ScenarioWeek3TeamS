@@ -1,20 +1,26 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 public class sqliteConnection {
 	
 	Connection connection = null;
+	JFrame f;
 	
-	public static Connection dbConnector() {
+	public sqliteConnection(JFrame f) {
+		this.f = f;
+	}
+	
+	public Connection dbConnector() {
 		
 		try{
 			
 			Class.forName("org.sqlite.JDBC");
 			//change FILEPATH
-			Connection connection = DriverManager.getConnection("jdbc:sqlite:C:\\Users\\Alex\\workspace\\CircuitSimulator\\ComponentData.sqlite");
-			JOptionPane.showMessageDialog(null, "Database Connected");
+			Connection connection = DriverManager.getConnection("jdbc:sqlite:C:\\Users\\Alex Xu\\Documents\\Eclipse\\CircuitSimulator\\ComponentData.sqlite");
+			JOptionPane.showMessageDialog(f, "Database Connected");
 			return connection;
 			
 		}catch(Exception e) {

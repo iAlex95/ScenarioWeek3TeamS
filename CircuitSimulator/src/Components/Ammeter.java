@@ -3,7 +3,7 @@ package Components;
 
 public class Ammeter extends Component {
 	
-	private int readCurrent;
+	private double readCurrent;
 	private final static int MAX_ROTATION = 2;
 	
 	public Ammeter(int x, int y, int type) {
@@ -13,11 +13,11 @@ public class Ammeter extends Component {
 		maxRotation = MAX_ROTATION;
 	}
 
-	public int getReadCurrent() {
+	public double getReadCurrent() {
 		return readCurrent;
 	}
 
-	public void setReadCurrent(int readCurrent) {
+	public void setReadCurrent(double readCurrent) {
 		this.readCurrent = readCurrent;
 	}
 

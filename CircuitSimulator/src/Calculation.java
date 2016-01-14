@@ -7,7 +7,7 @@ import java.util.*;
 public class Calculation {
 	//the circuit is valid
 	
-	private List<Component> components = new ArrayList<Component>();
+	private List<Component> components;
 	
 	public Calculation(List<Component> components) {
 		this.components = components;

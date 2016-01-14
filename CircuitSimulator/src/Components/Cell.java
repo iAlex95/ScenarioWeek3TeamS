@@ -11,7 +11,7 @@ public class Cell extends Component {
 		super.y = y;
 		super.type = type;
 		maxRotation = MAX_ROTATION;
-		voltage = 9;
+		voltage = 6;
 	}
 
 	public int getVoltage() {
