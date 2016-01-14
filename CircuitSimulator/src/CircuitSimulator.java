@@ -559,6 +559,37 @@ public class CircuitSimulator extends JPanel {
         repaint();
 	}
 	
+	public void circuitValidation() {
+		CircuitChecker checker = new CircuitChecker(components, gridPoints, simulator);
+		
+		int circuitCompletion = checker.checkCircuit();
+		
+		if (circuitCompletion == 0) {runMessage.setText("NO POWER SOURCE!");};
+		if (circuitCompletion == 1) {runMessage.setText("BROKEN OR UNRECOGNIZED \nCIRCUIT!");};
+		if (circuitCompletion == 2) {
+			Calculation calculator = new Calculation(components);
+			VoltageReading = calculator.voltage();
+			CurrentReading = calculator.current();
+			ResistanceReading = calculator.resistance();
+			MaxVoltage = calculator.maxVoltageCircuit();
+			
+			if (MaxVoltage) { 
+				runMessage.setText("VOLTAGE TOO HIGH! \nLOWER AT POWER SOURCE!");
+			} else {
+				runMessage.setText("CIRCUIT RUNNING.");
+				
+				for (Component c : components) {
+					if (c instanceof Ammeter) {
+						((Ammeter) c).setReadCurrent((double)Math.round(CurrentReading * 100d) / 100d);
+					}
+					if (c instanceof Voltmeter) {
+						((Voltmeter) c).setReadVoltage((double)Math.round(checker.getVoltmeterReading(c) * 100d) / 100d);
+					}
+				}
+			}	
+		}
+	}
+	
 	public void addButtons() {
 		if (!(circuitRunning)) {
 			JButton clearButton = new JButton("Clear Canvas");
@@ -595,36 +626,7 @@ public class CircuitSimulator extends JPanel {
 					removeAll();
 			        repaint();
 					
-					CircuitChecker checker = new CircuitChecker(components, gridPoints, simulator);
-					
-					int circuitCompletion = checker.checkCircuit();
-					
-					if (circuitCompletion == 0) {runMessage.setText("NO POWER SOURCE!");};
-					if (circuitCompletion == 1) {runMessage.setText("BROKEN OR UNRECOGNIZED \nCIRCUIT!");};
-					if (circuitCompletion == 2) {
-						Calculation calculator = new Calculation(components);
-						VoltageReading = calculator.voltage();
-						CurrentReading = calculator.current();
-						ResistanceReading = calculator.resistance();
-						MaxVoltage = calculator.maxVoltageCircuit();
-						
-						if (MaxVoltage) { 
-							runMessage.setText("VOLTAGE TOO HIGH! \nLOWER AT POWER SOURCE!");
-						} else {
-							runMessage.setText("CIRCUIT RUNNING.");
-							
-							for (Component c : components) {
-								if (c instanceof Ammeter) {
-									((Ammeter) c).setReadCurrent(CurrentReading);
-								}
-								if (c instanceof Voltmeter) {
-									((Voltmeter) c).setReadVoltage(checker.getVoltmeterReading(c));
-								}
-							}
-						}
-
-						
-					}
+					circuitValidation();
 					add(runMessage);
 					
 				}
@@ -675,6 +677,7 @@ public class CircuitSimulator extends JPanel {
 						+ "	- You may only add one power source (Cell) to the canvas\n"
 						+ "	- Make sure to have a complete circuit\n"
 						+ "	- Make sure to not set voltage of power source too high\n"
+						+ "	- This application only recognizes series circuits\n"
 						+ "\n"
 						+ "Application developed by UCL Group S\n"
 						+ "Jamie Law, Jasmine Lu, Yee Chong Tan, Alexander Xu";
@@ -685,7 +688,6 @@ public class CircuitSimulator extends JPanel {
 
 	}
 		
-	
 	public void addProperties() {
 		if (selectedComponentType == CELL) {
 			Cell cell = (Cell) selectedComponent;
@@ -751,6 +753,7 @@ public class CircuitSimulator extends JPanel {
 		            removeAll();
 		            repaint();
 		            setSelectedComponent(SWITCH, sw);
+		            if (circuitRunning) circuitValidation();
 		        }          
 		    });
 			
@@ -764,6 +767,7 @@ public class CircuitSimulator extends JPanel {
 		            removeAll();
 		            repaint();
 		            setSelectedComponent(SWITCH, sw);
+		            if (circuitRunning) circuitValidation();
 		        }          
 		    });
 		}
@@ -780,6 +784,7 @@ public class CircuitSimulator extends JPanel {
 		            removeAll();
 		            repaint();
 		            setSelectedComponent(BUTTON, btn);
+		            if (circuitRunning) circuitValidation();
 		        }          
 		    });
 			
@@ -793,6 +798,7 @@ public class CircuitSimulator extends JPanel {
 		            removeAll();
 		            repaint();
 		            setSelectedComponent(BUTTON, btn);
+		            if (circuitRunning) circuitValidation();
 		        }          
 		    });
 		}

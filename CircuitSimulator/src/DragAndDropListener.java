@@ -125,7 +125,8 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 					dragOffsetY = y - component.getY();
 					dragComponent = component;
 
-					if (dragComponent instanceof Voltmeter || dragComponent instanceof Ammeter) {
+					if (dragComponent instanceof Voltmeter || dragComponent instanceof Ammeter
+							|| dragComponent instanceof Switch || dragComponent instanceof Button) {
 						checkAndSetSelectedComponent(dragComponent);
 						simulator.setHighlightPoint(checkPoint);
 					}
