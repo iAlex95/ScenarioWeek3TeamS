@@ -475,6 +475,10 @@ public class CircuitSimulator extends JPanel {
 			component.addImage(img);
 			img = new ImageIcon(getClass().getResource("/img/" + "led-v.png")).getImage();
 			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "ledon.png")).getImage();
+			component.addImage(img);
+			img = new ImageIcon(getClass().getResource("/img/" + "ledon-v.png")).getImage();
+			component.addImage(img);
 		}
 		if (type == 7) {
 			component = new Switch(0, 0, type);
@@ -548,7 +552,10 @@ public class CircuitSimulator extends JPanel {
 					continue;
 				}
 			}
-			if (component instanceof LED && circuitRunning) {}
+			if (component instanceof LED && circuitRunning && ((LED)component).isSwitchedOn()) {
+				g.drawImage(component.getImage(component.getRotation()+2), component.getX(), component.getY(), null);
+				continue;	
+			}
 			g.drawImage(component.getImage(component.getRotation()), component.getX(), component.getY(), null);
 		}
 		for (Component component : initialComponents) {
@@ -599,6 +606,18 @@ public class CircuitSimulator extends JPanel {
 		
 		int circuitCompletion = checker.checkCircuit();
 		
+		for (Component c : components) {
+			if (c instanceof Ammeter) {
+				((Ammeter) c).setReadCurrent(0);
+			}
+			if (c instanceof Voltmeter) {
+				((Voltmeter) c).setReadVoltage(0);
+			}
+			if (c instanceof LED) {
+				((LED) c).setSwitchedOn(false);
+			}
+		}
+		
 		if (circuitCompletion == 0) {runMessage.setText("NO POWER SOURCE!");};
 		if (circuitCompletion == 1) {runMessage.setText("BROKEN OR UNRECOGNIZED \nCIRCUIT!");};
 		if (circuitCompletion == 2) {
@@ -620,9 +639,14 @@ public class CircuitSimulator extends JPanel {
 					if (c instanceof Voltmeter) {
 						((Voltmeter) c).setReadVoltage((double)Math.round(checker.getVoltmeterReading(c) * 100d) / 100d);
 					}
+					if (c instanceof LED) {
+						((LED) c).setSwitchedOn(true);
+					}
 				}
 			}	
 		}
+		
+        repaint();
 	}
 	
 	public void addButtons() {
@@ -658,10 +682,10 @@ public class CircuitSimulator extends JPanel {
 					runMessage.setText("");
 					runMessage.setBounds(810-(runMessage.getWidth()/2),490-(runMessage.getHeight()/2),175,50);
 					
+					circuitValidation();
+					
 					removeAll();
 			        repaint();
-					
-					circuitValidation();
 					add(runMessage);
 					
 				}
@@ -688,6 +712,9 @@ public class CircuitSimulator extends JPanel {
 						}
 						if (c instanceof Voltmeter) {
 							((Voltmeter) c).setReadVoltage(0);
+						}
+						if (c instanceof LED) {
+							((LED) c).setSwitchedOn(false);
 						}
 					}
 					
