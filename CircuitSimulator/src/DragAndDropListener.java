@@ -25,6 +25,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 	private int initialX;
 	private int initialY;
 	private boolean needToRedraw = false;
+	private Component selectedComponent;
 	
 	private static final int WIRE = 0;
 	private static final int CORNERWIRE = 1;
@@ -45,6 +46,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 
 	@Override
 	public void mousePressed(MouseEvent evt) {
+		selectedComponent = null;
 		if (simulator.getListenerActive()) {
 			simulator.setHighlightPoint(null);
 			simulator.setSelectedComponent(-1, null);
@@ -65,6 +67,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 						if(evt.getButton() == MouseEvent.BUTTON1 ) {
 							simulator.addComponent(component);
 							simulator.removeInitialComponent(component);
+							simulator.setMouseOverInitial(false);
 						}
 						break;
 					}
@@ -90,6 +93,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 			      if (dragComponent.getInitial() == false) {
 				      GridPoint checkPoint = simulator.checkPoint(x, y);
 				      checkAndSetSelectedComponent(dragComponent);
+				      selectedComponent = dragComponent;
 				      simulator.setHighlightPoint(checkPoint);
 				      
 				      if (!(dragComponent.getInitial())) {
@@ -127,8 +131,10 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 
 					if (dragComponent instanceof Voltmeter || dragComponent instanceof Ammeter
 							|| dragComponent instanceof Switch || dragComponent instanceof Button
-							|| dragComponent instanceof Cell || dragComponent instanceof Resistor) {
+							|| dragComponent instanceof Cell || dragComponent instanceof Resistor
+							|| dragComponent instanceof LED) {
 						checkAndSetSelectedComponent(dragComponent);
+						selectedComponent = dragComponent;
 						simulator.setHighlightPoint(checkPoint);
 					}
 					
@@ -136,6 +142,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 					break;
 				} else {
 					checkAndSetSelectedComponent(null);
+					selectedComponent = null;
 					simulator.setHighlightPoint(null);
 				}
 					
@@ -152,6 +159,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 
 	@Override
 	public void mouseReleased(MouseEvent evt) {
+		selectedComponent = null;
 		if(evt.getButton() == MouseEvent.BUTTON1) {
 			if (dragComponent != null) {
 				int x = evt.getPoint().x;
@@ -169,6 +177,7 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 					dragComponent.setGridPoint(checkPoint);
 					checkPoint.setComponent(dragComponent);
 					checkAndSetSelectedComponent(dragComponent);
+					selectedComponent = dragComponent;
 					simulator.setHighlightPoint(checkPoint);
 					simulator.setGridConnections(dragComponent, checkPoint);
 					
@@ -235,8 +244,20 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 				Component component = initialComponents.get(i);
 				
 				if(mouseOverComponent(component,x,y)){
+					checkAndSetSelectedComponent(selectedComponent);
+					simulator.setMouseOverInitial(true);
+					simulator.removeAll();
+					simulator.repaint();
 					simulator.addNameText(x,y, component);
 					break;
+				} else {
+					if (simulator.getMouseOverInitial()) {
+						checkAndSetSelectedComponent(selectedComponent);
+						simulator.removeAll();
+						simulator.repaint();
+						simulator.setMouseOverInitial(false);
+						simulator.addNameText(x,y, null);
+					}
 				}
 			}
 		}

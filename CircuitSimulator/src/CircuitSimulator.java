@@ -86,6 +86,8 @@ public class CircuitSimulator extends JPanel {
 	private double ResistanceReading;
 	private boolean MaxVoltage;
 	private JTextArea runMessage;
+	private JTextArea initialTextArea;
+	private boolean mouseOverInitial = false;
 
 	public CircuitSimulator() {
 		URL urlLeftPanel = getClass().getResource("/img/leftpanel.png");
@@ -98,8 +100,6 @@ public class CircuitSimulator extends JPanel {
 				gridPoints.add(new GridPoint(GRID_START_X + TILE_OFFSET_X * j, GRID_START_Y + TILE_OFFSET_Y * i, false));
 			}
 		}
-			
-		//setGridConnections();
 		
 		createInitialComponentList();
 
@@ -111,7 +111,7 @@ public class CircuitSimulator extends JPanel {
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.add(this);
 		f.setResizable(false);
-		f.setSize(1000, 658);
+		f.setSize(1000, 652);
 		
 		addMenuBar();
 		
@@ -201,8 +201,6 @@ public class CircuitSimulator extends JPanel {
 		file.add(saveAs);
 		JMenuItem save = new JMenuItem("Save");
 		file.add(save);
-		JMenuItem delete = new JMenuItem("Delete Previously Saved Circuits");
-		file.add(delete);
 		
 		saveAs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -376,62 +374,6 @@ public class CircuitSimulator extends JPanel {
 						
 						pst2.close();
 						rs2.close();
-					}
-					
-					pst1.close();
-					rs1.close();
-					
-					
-				}catch (Exception e1) {
-					e1.printStackTrace();
-				}
-				
-			}
-			
-		});
-		
-		delete.addActionListener(new ActionListener(){
-			
-			public void actionPerformed(ActionEvent arg0) {
-				
-				try {
-					
-					String query = "SELECT name FROM ComponentInfo GROUP BY name";
-					PreparedStatement pst1 = c.prepareStatement(query);
-					ResultSet rs1 = pst1.executeQuery();
-					
-					ArrayList <String> results = new ArrayList<String>();
-					
-					while(rs1.next()) {
-						results.add(rs1.getString(1));
-					}
-					
-					String[] r = (String[]) results.toArray(new String[results.size()]);
-					
-					Object value = JOptionPane.showInputDialog(f, "Select a circuit", "Load a saved circuit", JOptionPane.OK_CANCEL_OPTION, null, r, r[0]);
-					
-					if (value == null) {
-						repaint();
-					}
-					else {
-						
-						String query2 = "DELETE FROM ComponentInfo WHERE name='"+value+"'";
-						PreparedStatement pst = c.prepareStatement(query2);
-						
-						pst.execute();
-						pst.close();
-						
-						JOptionPane.showMessageDialog(f, "Circuit Deleted.");
-						
-						if (f.getTitle().equals(value)) {
-							components.clear();
-							f.setTitle(null);
-						}
-						
-						//DRAW COMPONENT
-						removeAll();
-						repaint();
-							
 					}
 					
 					pst1.close();
@@ -627,13 +569,13 @@ public class CircuitSimulator extends JPanel {
             g2d.draw(bounds);
         }
 		
-		addProperties();
 		addButtons();
+		addProperties();
 		//validate();
 		
-		if (circuitRunning) {
-			add(runMessage);
-		}
+		if (circuitRunning) add(runMessage);
+		
+		if (mouseOverInitial) add(initialTextArea);
 		
 		setSelectedComponent(-1, null);
 	}
@@ -993,31 +935,27 @@ public class CircuitSimulator extends JPanel {
 	}
 	
 	public void addNameText(int x, int y, Component c) {
-		JTextArea textArea = new JTextArea(0, 20);
-		textArea.setEditable(false);
-		textArea.setOpaque(false);
-		textArea.setFont(new Font("Arial", Font.BOLD, 12));
-		textArea.setBounds(x-(textArea.getWidth()/2)+13,y-(textArea.getHeight()/2)+5,100,20);
+		initialTextArea = new JTextArea(0, 20);
+		initialTextArea.setEditable(false);
+		initialTextArea.setOpaque(false);
+		initialTextArea.setFont(new Font("Arial", Font.BOLD, 12));
+		initialTextArea.setBounds(x-(initialTextArea.getWidth()/2)+13,y-(initialTextArea.getHeight()/2)+5,100,20);
 		
-		if (c instanceof Cell) textArea.setText("POWER SOURCE");
-		if (c instanceof Wire) textArea.setText("WIRE");
-		if (c instanceof CornerWire) textArea.setText("CORNER WIRE");
-		if (c instanceof TripleWire) textArea.setText("THREE-WAY WIRE");
-		if (c instanceof Voltmeter) textArea.setText("VOLTMETER");
-		if (c instanceof Ammeter) textArea.setText("AMMETER");
-		if (c instanceof LED) textArea.setText("LAMP");
-		if (c instanceof Resistor) textArea.setText("RESISTOR");
-		if (c instanceof Switch) textArea.setText("SWITCH");
-		if (c instanceof Button) textArea.setText("BUTTON");
+		if (c instanceof Cell) initialTextArea.setText("POWER SOURCE");
+		else if (c instanceof Wire) initialTextArea.setText("WIRE");
+		else if (c instanceof CornerWire) initialTextArea.setText("CORNER WIRE");
+		else if (c instanceof TripleWire) initialTextArea.setText("THREE-WAY WIRE");
+		else if (c instanceof Voltmeter) initialTextArea.setText("VOLTMETER");
+		else if (c instanceof Ammeter) initialTextArea.setText("AMMETER");
+		else if (c instanceof LED) initialTextArea.setText("LAMP");
+		else if (c instanceof Resistor) initialTextArea.setText("RESISTOR");
+		else if (c instanceof Switch) initialTextArea.setText("SWITCH");
+		else if (c instanceof Button) initialTextArea.setText("BUTTON");
+		else initialTextArea.setText("");
 		
 		try {
-		textArea.getHighlighter().addHighlight(0,textArea.getText().length(),new DefaultHighlighter.DefaultHighlightPainter(Color.white));
+		initialTextArea.getHighlighter().addHighlight(0,initialTextArea.getText().length(),new DefaultHighlighter.DefaultHighlightPainter(Color.white));
 		} catch (Exception e) {}
-		
-		removeAll();
-		repaint();
-		
-		add(textArea);
 	}
 		
 			
@@ -1056,6 +994,14 @@ public class CircuitSimulator extends JPanel {
 
 	public double getCurrentReading() {
 		return CurrentReading;
+	}
+	
+	public void setMouseOverInitial(boolean b) {
+		mouseOverInitial = b;
+	}
+	
+	public boolean getMouseOverInitial() {
+		return mouseOverInitial;
 	}
 	
 	public static void main(String[] args) {
