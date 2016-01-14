@@ -237,9 +237,6 @@ public class DragAndDropListener implements MouseListener, MouseMotionListener {
 				if(mouseOverComponent(component,x,y)){
 					simulator.addNameText(x,y, component);
 					break;
-				} else {
-					simulator.removeAll();
-					simulator.repaint();
 				}
 			}
 		}
