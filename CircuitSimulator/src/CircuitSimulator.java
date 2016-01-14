@@ -201,6 +201,8 @@ public class CircuitSimulator extends JPanel {
 		file.add(saveAs);
 		JMenuItem save = new JMenuItem("Save");
 		file.add(save);
+		JMenuItem delete = new JMenuItem("Delete Previously Saved Circuits");
+		file.add(delete);
 		
 		saveAs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -374,6 +376,62 @@ public class CircuitSimulator extends JPanel {
 						
 						pst2.close();
 						rs2.close();
+					}
+					
+					pst1.close();
+					rs1.close();
+					
+					
+				}catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				
+			}
+			
+		});
+		
+		delete.addActionListener(new ActionListener(){
+			
+			public void actionPerformed(ActionEvent arg0) {
+				
+				try {
+					
+					String query = "SELECT name FROM ComponentInfo GROUP BY name";
+					PreparedStatement pst1 = c.prepareStatement(query);
+					ResultSet rs1 = pst1.executeQuery();
+					
+					ArrayList <String> results = new ArrayList<String>();
+					
+					while(rs1.next()) {
+						results.add(rs1.getString(1));
+					}
+					
+					String[] r = (String[]) results.toArray(new String[results.size()]);
+					
+					Object value = JOptionPane.showInputDialog(f, "Select a circuit", "Load a saved circuit", JOptionPane.OK_CANCEL_OPTION, null, r, r[0]);
+					
+					if (value == null) {
+						repaint();
+					}
+					else {
+						
+						String query2 = "DELETE FROM ComponentInfo WHERE name='"+value+"'";
+						PreparedStatement pst = c.prepareStatement(query2);
+						
+						pst.execute();
+						pst.close();
+						
+						JOptionPane.showMessageDialog(f, "Circuit Deleted.");
+						
+						if (f.getTitle().equals(value)) {
+							components.clear();
+							f.setTitle(null);
+						}
+						
+						//DRAW COMPONENT
+						removeAll();
+						repaint();
+							
 					}
 					
 					pst1.close();
