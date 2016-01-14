@@ -12,10 +12,12 @@ class SliderListener implements ChangeListener {
 	int value;
 	JTextArea textArea;
 	Component component;
+	CircuitSimulator simulator;
 	
-	public SliderListener(Component component, JTextArea textArea) {
+	public SliderListener(Component component, JTextArea textArea, CircuitSimulator simulator) {
 		this.textArea = textArea;
 		this.component = component;
+		this.simulator = simulator;
 	}
 		
 	
@@ -25,10 +27,12 @@ class SliderListener implements ChangeListener {
         if (component instanceof Cell) {
 			((Cell) component).setVoltage(value);
 			textArea.setText(Integer.toString(value)+"V");
+			simulator.circuitValidation();
 		}
 		if (component instanceof Resistor) {
 			((Resistor) component).setResistance(value);
 			textArea.setText(Integer.toString(value)+"Ω");
+			simulator.circuitValidation();
 		}
     }
     

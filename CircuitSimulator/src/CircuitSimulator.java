@@ -712,7 +712,7 @@ public class CircuitSimulator extends JPanel {
 			voltage.setBounds(812-(voltage.getWidth()/2),100-(voltage.getHeight()/2),150,30);
 			voltage.setOpaque(false);
 			add(voltage);
-			voltage.addChangeListener(new SliderListener(cell, displayValue));
+			voltage.addChangeListener(new SliderListener(cell, displayValue, simulator));
 		}
 		
 		if (selectedComponentType == RESISTOR) {
@@ -738,7 +738,7 @@ public class CircuitSimulator extends JPanel {
 			voltage.setBounds(812-(voltage.getWidth()/2),100-(voltage.getHeight()/2),150,30);
 			voltage.setOpaque(false);
 			add(voltage);
-			voltage.addChangeListener(new SliderListener(resistor, displayValue));
+			voltage.addChangeListener(new SliderListener(resistor, displayValue, simulator));
 		}
 		
 		if (selectedComponentType == SWITCH) {
