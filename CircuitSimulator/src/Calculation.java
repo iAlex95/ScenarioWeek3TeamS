@@ -58,7 +58,7 @@ public class Calculation {
 	
 	public double current(){
 		
-		double current = voltage()/resistance();
+		double current = (double)voltage()/ (double)resistance();
 		return current;
 	}
 	
