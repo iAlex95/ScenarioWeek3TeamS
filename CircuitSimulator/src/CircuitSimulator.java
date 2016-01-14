@@ -7,7 +7,6 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,6 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
+import javax.swing.text.DefaultHighlighter;
 
 import Components.Ammeter;
 import Components.Button;
@@ -871,6 +871,35 @@ public class CircuitSimulator extends JPanel {
 			add(reading);
 		}
 	}
+	
+	public void addNameText(int x, int y, Component c) {
+		JTextArea textArea = new JTextArea(0, 20);
+		textArea.setEditable(false);
+		textArea.setOpaque(false);
+		textArea.setFont(new Font("Arial", Font.BOLD, 12));
+		textArea.setBounds(x-(textArea.getWidth()/2)+13,y-(textArea.getHeight()/2)+5,100,20);
+		
+		if (c instanceof Cell) textArea.setText("POWER SOURCE");
+		if (c instanceof Wire) textArea.setText("WIRE");
+		if (c instanceof CornerWire) textArea.setText("CORNER WIRE");
+		if (c instanceof TripleWire) textArea.setText("THREE-WAY WIRE");
+		if (c instanceof Voltmeter) textArea.setText("VOLTMETER");
+		if (c instanceof Ammeter) textArea.setText("AMMETER");
+		if (c instanceof LED) textArea.setText("LAMP");
+		if (c instanceof Resistor) textArea.setText("RESISTOR");
+		if (c instanceof Switch) textArea.setText("SWITCH");
+		if (c instanceof Button) textArea.setText("BUTTON");
+		
+		try {
+		textArea.getHighlighter().addHighlight(0,textArea.getText().length(),new DefaultHighlighter.DefaultHighlightPainter(Color.white));
+		} catch (Exception e) {}
+		
+		removeAll();
+		repaint();
+		
+		add(textArea);
+	}
+		
 			
 	public void addComponent(Component component) {
 		this.components.add(component);
