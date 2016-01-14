@@ -207,15 +207,35 @@ public class CircuitSimulator extends JPanel {
 				
 				try {
 					
+					String q = "SELECT name FROM ComponentInfo GROUP BY name";
+					PreparedStatement pst1 = c.prepareStatement(q);
+					ResultSet rs1 = pst1.executeQuery();
+					
+					ArrayList <String> results = new ArrayList<String>();
+					
+					while(rs1.next()) {
+						results.add(rs1.getString(1));
+					}
+					
+					System.out.println(results);
+					
 					String name = JOptionPane.showInputDialog("Name of circuit:");
 					
 					if (name == null) {
-						JOptionPane.showMessageDialog(f, "Please Enter a Name");
+						System.out.println("jhgkhghjgjhghjkgh");	
+					} 
+					
+					else if (name.length() == 0) {
+						JOptionPane.showMessageDialog(f, "Name field must not be empty. Try Again!");
 					}
-					else {
+					else if (results.contains(name)) {
+						JOptionPane.showMessageDialog(f, "Name has already been used for another circuit. Try Again!");
+					}
+					else if (name != null && name.length() > 0){
+							
 						
 						for (Component component : components) {
-							
+								
 							String query = "INSERT INTO ComponentInfo (name, type, rotation, x, y, voltage, resistance) values (?,?,?,?,?,?,?)";
 							PreparedStatement pst = c.prepareStatement(query);
 							pst.setString(1, name);
@@ -223,7 +243,7 @@ public class CircuitSimulator extends JPanel {
 							pst.setInt(3, component.getRotation());
 							pst.setInt(4, component.getX());
 							pst.setInt(5, component.getY());
-							
+									
 							if (component instanceof Cell) {
 								pst.setInt(6, ((Cell)component).getVoltage());
 							}
@@ -231,14 +251,18 @@ public class CircuitSimulator extends JPanel {
 							if (component instanceof Resistor) {
 								pst.setInt(7, ((Resistor)component).getResistance());
 							}
-							
+									
 							pst.execute();
 							pst.close();
 						}	
 						f.setTitle(name);
 						JOptionPane.showMessageDialog(f, "Circuit saved.");
+					
 					}
-
+					
+					pst1.close();
+					rs1.close();
+					
 				}catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -252,36 +276,40 @@ public class CircuitSimulator extends JPanel {
 				
 				try {
 					
-					String query = "DELETE FROM ComponentInfo WHERE name='"+f.getTitle()+"'";
-					PreparedStatement pst1 = c.prepareStatement(query);
-					
-					pst1.execute();
-					pst1.close();
-					
+					if (f.getTitle().length() == 0) {
+						JOptionPane.showMessageDialog(f, "Choose Save As... to save the circuit for the first time.");
+					}
+					else {
+						String query = "DELETE FROM ComponentInfo WHERE name='"+f.getTitle()+"'";
+						PreparedStatement pst1 = c.prepareStatement(query);
 						
-					for (Component component : components) {
+						pst1.execute();
+						pst1.close();
+						
 							
-						String query1 = "INSERT INTO ComponentInfo (name, type, rotation, x, y, voltage, resistance) values (?,?,?,?,?,?,?)";
-						PreparedStatement pst = c.prepareStatement(query1);
-						pst.setString(1, f.getTitle());
-						pst.setInt(2, component.getType());
-						pst.setInt(3, component.getRotation());
-						pst.setInt(4, component.getX());
-						pst.setInt(5, component.getY());
-						
-						if (component instanceof Cell) {
-							pst.setInt(6, ((Cell)component).getVoltage());
-						}
+						for (Component component : components) {
+								
+							String query1 = "INSERT INTO ComponentInfo (name, type, rotation, x, y, voltage, resistance) values (?,?,?,?,?,?,?)";
+							PreparedStatement pst = c.prepareStatement(query1);
+							pst.setString(1, f.getTitle());
+							pst.setInt(2, component.getType());
+							pst.setInt(3, component.getRotation());
+							pst.setInt(4, component.getX());
+							pst.setInt(5, component.getY());
+							
+							if (component instanceof Cell) {
+								pst.setInt(6, ((Cell)component).getVoltage());
+							}
 
-						if (component instanceof Resistor) {
-							pst.setInt(7, ((Resistor)component).getResistance());
+							if (component instanceof Resistor) {
+								pst.setInt(7, ((Resistor)component).getResistance());
+							}
+								
+							pst.execute();
+							pst.close();
 						}
-							
-						pst.execute();
-						pst.close();
-					}	
-					JOptionPane.showMessageDialog(f, "Circuit saved.");
-					
+						JOptionPane.showMessageDialog(f, "Circuit saved.");
+					}
 				}catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -309,41 +337,48 @@ public class CircuitSimulator extends JPanel {
 					String[] r = (String[]) results.toArray(new String[results.size()]);
 					
 					Object value = JOptionPane.showInputDialog(f, "Select a circuit", "Load a saved circuit", JOptionPane.OK_CANCEL_OPTION, null, r, r[0]);
-					System.out.println(results);
 					
-					String query2 = "SELECT name, type, rotation, x, y, voltage, resistance FROM ComponentInfo WHERE name=?";
-					PreparedStatement pst2 = c.prepareStatement(query2);
-					pst2.setString(1, (String) value);
-					ResultSet rs2 = pst2.executeQuery();
-					
-					resetAll();
-					
-					while(rs2.next()) {
-											
-						int type = rs2.getInt("type");
-						int rotation = rs2.getInt("rotation");
-						int x = rs2.getInt("x");
-						int y = rs2.getInt("y");
-						
-						int voltage = rs2.getInt("voltage");
-						int resistance = rs2.getInt("resistance");
-						
-						//ADD COMPONENT TO LIST
-						createComponent(x,y,type,voltage,resistance,rotation, false);
-						
-						//DRAW COMPONENT
-						removeAll();
+					if (value == null) {
 						repaint();
-						
 					}
-					
-					f.setTitle((String) value);
-					System.out.println(components);
+					else {
+						String query2 = "SELECT name, type, rotation, x, y, voltage, resistance FROM ComponentInfo WHERE name=?";
+						PreparedStatement pst2 = c.prepareStatement(query2);
+						pst2.setString(1, (String) value);
+						ResultSet rs2 = pst2.executeQuery();
+						
+						resetAll();
+						
+						while(rs2.next()) {
+												
+							int type = rs2.getInt("type");
+							int rotation = rs2.getInt("rotation");
+							int x = rs2.getInt("x");
+							int y = rs2.getInt("y");
+							
+							int voltage = rs2.getInt("voltage");
+							int resistance = rs2.getInt("resistance");
+							
+							//ADD COMPONENT TO LIST
+							createComponent(x,y,type,voltage,resistance,rotation, false);
+							
+							//DRAW COMPONENT
+							removeAll();
+							repaint();
+							
+							
+						}
+						
+						f.setTitle((String) value);
+						System.out.println(components);
+						
+						pst2.close();
+						rs2.close();
+					}
 					
 					pst1.close();
 					rs1.close();
-					pst2.close();
-					rs2.close();
+					
 					
 				}catch (Exception e1) {
 					e1.printStackTrace();
