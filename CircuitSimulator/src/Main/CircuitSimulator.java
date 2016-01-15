@@ -1,3 +1,4 @@
+package Main;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -63,9 +64,9 @@ public class CircuitSimulator extends JPanel {
 	private Image leftPanel;
 	private Image rightPanel;
 
-	private List<Component> initialComponents = new ArrayList<Component>();
-	private List<Component> components = new ArrayList<Component>();
-	private List<GridPoint> gridPoints = new ArrayList<GridPoint>();
+	public List<Component> initialComponents = new ArrayList<Component>();
+	public List<Component> components = new ArrayList<Component>();
+	public List<GridPoint> gridPoints = new ArrayList<GridPoint>();
 	
 	private JFrame f;
 	private CircuitSimulator simulator = this;
@@ -361,6 +362,8 @@ public class CircuitSimulator extends JPanel {
 							
 							//ADD COMPONENT TO LIST
 							createComponent(x,y,type,voltage,resistance,rotation, false);
+							
+							System.out.println("createComponent(" + x + "," + y + "," + type + "," + voltage + "," + resistance + "," + rotation + ",false);");
 							
 							//DRAW COMPONENT
 							removeAll();
